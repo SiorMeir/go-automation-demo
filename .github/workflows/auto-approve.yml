@@ -1,0 +1,88 @@
+name: Auto-approve Non-critical Changes
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  auto-approve:
+    name: Auto-approve
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'msior'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check file changes
+        id: check-files
+        run: |
+          # Non-critical file extensions
+          NON_CRITICAL_EXTENSIONS="md txt json yaml yml gitignore license"
+          
+          # Non-critical specific files
+          NON_CRITICAL_FILES="README.md CHANGELOG.md data.json .gitignore LICENSE"
+          
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+          
+          # Check if only non-critical files changed
+          CRITICAL_CHANGES=false
+          
+          for file in $CHANGED_FILES; do
+            # Check file extension
+            EXTENSION="${file##*.}"
+            if [[ " $NON_CRITICAL_EXTENSIONS " =~ " $EXTENSION " ]]; then
+              continue
+            fi
+            # Check specific file names
+            if [[ " $NON_CRITICAL_FILES " =~ " $file " ]]; then
+              continue
+            fi
+            # If we get here, it's a critical file
+            CRITICAL_CHANGES=true
+            break
+          done
+          
+          echo "critical_changes=$CRITICAL_CHANGES" >> $GITHUB_OUTPUT
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+
+      - name: Auto-approve
+        if: steps.check-files.outputs.critical_changes == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+            
+            const hasApproval = reviews.some(review => 
+              review.state === 'APPROVED' && 
+              review.user.login === 'msior'
+            );
+            
+            if (!hasApproval) {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                event: 'APPROVE',
+                body: '🤖 Auto-approved by GitHub Actions\n\nThis PR contains only non-critical changes and was automatically approved.'
+              });
+            }
+
+      - name: Comment on critical changes
+        if: steps.check-files.outputs.critical_changes == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ This PR contains critical changes and requires manual review.\n\nChanged files:\n```\n' + '${{ steps.check-files.outputs.changed_files }}' + '\n```'
+            });

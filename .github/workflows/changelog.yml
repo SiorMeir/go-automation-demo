@@ -1,0 +1,129 @@
+name: Update Changelog
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - master
+
+jobs:
+  update-changelog:
+    name: Update Changelog
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24.4'
+
+      - name: Get PR information
+        id: pr-info
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "pr_body=$PR_BODY" >> $GITHUB_OUTPUT
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Parse conventional commit
+        id: parse-commit
+        run: |
+          PR_TITLE="${{ steps.pr-info.outputs.pr_title }}"
+          
+          # Extract type and description from PR title
+          if [[ $PR_TITLE =~ ^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\([^)]+\))?:\ (.+)$ ]]; then
+            COMMIT_TYPE="${BASH_REMATCH[1]}"
+            COMMIT_SCOPE="${BASH_REMATCH[2]}"
+            COMMIT_DESCRIPTION="${BASH_REMATCH[3]}"
+          else
+            COMMIT_TYPE="chore"
+            COMMIT_SCOPE=""
+            COMMIT_DESCRIPTION="$PR_TITLE"
+          fi
+          
+          echo "commit_type=$COMMIT_TYPE" >> $GITHUB_OUTPUT
+          echo "commit_scope=$COMMIT_SCOPE" >> $GITHUB_OUTPUT
+          echo "commit_description=$COMMIT_DESCRIPTION" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          COMMIT_TYPE="${{ steps.parse-commit.outputs.commit_type }}"
+          COMMIT_DESCRIPTION="${{ steps.parse-commit.outputs.commit_description }}"
+          PR_NUMBER="${{ steps.pr-info.outputs.pr_number }}"
+          PR_URL="${{ steps.pr-info.outputs.pr_url }}"
+          
+          # Read current changelog
+          CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+          
+          # Find the Unreleased section and add the new entry
+          if [[ $CHANGELOG_CONTENT =~ (## \[Unreleased\]\n\n)(.*) ]]; then
+            UNRELEASED_HEADER="${BASH_REMATCH[1]}"
+            UNRELEASED_CONTENT="${BASH_REMATCH[2]}"
+            
+            # Add new entry to the appropriate section
+            NEW_ENTRY="- $COMMIT_DESCRIPTION ([#$PR_NUMBER]($PR_URL))\n"
+            
+            # Find the appropriate section (Added, Changed, etc.)
+            if [[ $COMMIT_TYPE == "feat" ]]; then
+              SECTION="### Added"
+            elif [[ $COMMIT_TYPE == "fix" ]]; then
+              SECTION="### Fixed"
+            elif [[ $COMMIT_TYPE == "docs" ]]; then
+              SECTION="### Documentation"
+            elif [[ $COMMIT_TYPE == "style" ]]; then
+              SECTION="### Changed"
+            elif [[ $COMMIT_TYPE == "refactor" ]]; then
+              SECTION="### Changed"
+            elif [[ $COMMIT_TYPE == "test" ]]; then
+              SECTION="### Added"
+            elif [[ $COMMIT_TYPE == "chore" ]]; then
+              SECTION="### Changed"
+            elif [[ $COMMIT_TYPE == "perf" ]]; then
+              SECTION="### Changed"
+            elif [[ $COMMIT_TYPE == "ci" ]]; then
+              SECTION="### Changed"
+            elif [[ $COMMIT_TYPE == "build" ]]; then
+              SECTION="### Changed"
+            elif [[ $COMMIT_TYPE == "revert" ]]; then
+              SECTION="### Changed"
+            else
+              SECTION="### Changed"
+            fi
+            
+            # Insert the new entry after the section header
+            if [[ $UNRELEASED_CONTENT =~ ($SECTION\n)(.*) ]]; then
+              SECTION_HEADER="${BASH_REMATCH[1]}"
+              SECTION_CONTENT="${BASH_REMATCH[2]}"
+              NEW_UNRELEASED_CONTENT="${SECTION_HEADER}${NEW_ENTRY}${SECTION_CONTENT}"
+            else
+              # Section doesn't exist, create it
+              NEW_UNRELEASED_CONTENT="${SECTION}\n${NEW_ENTRY}\n\n${UNRELEASED_CONTENT}"
+            fi
+            
+            # Reconstruct the changelog
+            NEW_CHANGELOG="${UNRELEASED_HEADER}${NEW_UNRELEASED_CONTENT}"
+            
+            # Write back to file
+            echo -e "$NEW_CHANGELOG" > CHANGELOG.md
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "docs: update changelog for PR #${{ steps.pr-info.outputs.pr_number }}"
+          git push

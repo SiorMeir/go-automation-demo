@@ -1,0 +1,58 @@
+repos:
+  # Conventional commits enforcement
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.20.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+        additional_dependencies: [cz-conventional-changelog]
+
+  # Go formatting and linting
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+        args: [--write]
+      - id: go-imports
+        args: [--write]
+      - id: go-vet
+      - id: go-build
+      - id: go-mod-tidy
+      - id: golangci-lint
+        args: [--fix]
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+
+  # Conventional commit message validation
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.5.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        args: [--config, .commitlintrc.js]
+
+  # YAML validation
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [--strict]
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
