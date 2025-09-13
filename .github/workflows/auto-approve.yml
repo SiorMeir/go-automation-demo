@@ -10,7 +10,7 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
-    if: github.event.pull_request.user.login != 'github-actions[bot]' && github.event.pull_request.user.login != github.actor
+    if: github.event.pull_request.user.login != 'github-actions[bot]'
 
     steps:
     - uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
         fi
 
     - name: Auto approve PR
-      if: steps.check-readme-only.outputs.readme-only == 'true'
+      if: steps.check-readme-only.outputs.readme-only == 'true' && github.event.pull_request.user.login != github.actor
       uses: hmarr/auto-approve-action@v3
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
