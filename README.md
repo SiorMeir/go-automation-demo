@@ -29,7 +29,7 @@ go test -v
 
 - `GET /` - Returns a hello world message
 - `GET /health` - Returns health status
-
+- `GET /goodbye` - Returns a goodbye world message
 ## Automation Features
 
 This project demonstrates:
