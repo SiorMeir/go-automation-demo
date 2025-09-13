@@ -10,13 +10,19 @@ jobs:
     permissions:
       pull-requests: write
       contents: read
-    if: github.event.pull_request.user.login != 'github-actions[bot]'
+    if: github.event.pull_request.user.login != 'github-actions[bot]' && github.event.pull_request.user.login != github.actor
 
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Debug PR information
+      run: |
+        echo "PR Author: ${{ github.event.pull_request.user.login }}"
+        echo "GitHub Actor: ${{ github.actor }}"
+        echo "PR Number: ${{ github.event.pull_request.number }}"
 
     - name: Check if only README files changed
       id: check-readme-only
