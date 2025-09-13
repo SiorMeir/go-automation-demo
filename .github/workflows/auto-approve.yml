@@ -1,7 +1,7 @@
 name: Auto Approve README Changes
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize]
 
 jobs:
@@ -13,6 +13,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Check if only README files changed
       id: check-readme-only
