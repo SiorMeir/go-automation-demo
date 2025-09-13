@@ -1,0 +1,16 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters-settings:
+  typecheck:
+    go: "1.21"
+
+linters:
+  enable:
+    - typecheck
+    - gofmt
+    - goimports
+    - govet
+    - errcheck
+    - staticcheck
