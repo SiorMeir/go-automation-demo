@@ -10,7 +10,7 @@ func main() {
 	http.HandleFunc("/", helloHandler)
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/goodbye", goodbyeHandler)
-	http.HandleFunc("/gdsgs", gdsgs)
+	http.HandleFunc("/fdgdfghdfhgfd", gdsgs)
 
 	fmt.Println("Starting server on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
