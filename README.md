@@ -38,3 +38,5 @@ This project demonstrates:
 2. **GitHub Actions** - Automated testing and releases
 3. **Auto-approval** - README-only PRs are automatically approved
 4. **Semantic releases** - Automatic versioning based on conventional commits
+
+wow
