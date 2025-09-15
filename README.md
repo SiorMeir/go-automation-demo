@@ -22,7 +22,7 @@ The server will start on port 8080.
 Run tests with Ginkgo:
 
 ```bash
-go test -v
+ ginkgo -v ./main
 ```
 
 ## Endpoints
