@@ -20,6 +20,6 @@ jobs:
 
       - name: Auto approve
         if: steps.files.outputs.only_changed == 'true'
-        uses: hmarr/auto-approve-action@v4
+        uses: hmarr/auto-approve-action@v3
         with:
           github-token: ${{ secrets.BOT_TOKEN }}
