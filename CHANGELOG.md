@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/SiorMeir/go-automation-demo/compare/v1.0.1...v1.1.0) (2025-09-15)
+
+
+### Features
+
+* add endpoint ([2b9ebb0](https://github.com/SiorMeir/go-automation-demo/commit/2b9ebb026c7b98f55353af4add19bf86302f0db1))
+
 ## [1.0.1](https://github.com/SiorMeir/go-automation-demo/compare/v1.0.0...v1.0.1) (2025-09-15)
 
 
