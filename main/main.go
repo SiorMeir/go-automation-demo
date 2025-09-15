@@ -10,7 +10,7 @@ func main() {
 	http.HandleFunc("/", helloHandler)
 	http.HandleFunc("/health", healthHandler)
 	http.HandleFunc("/goodbye", goodbyeHandler)
-	http.HandleFunc("/fdgdfghdfhgfd", gdsgs)
+	http.HandleFunc("/wow", wowHandler)
 
 	fmt.Println("Starting server on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -27,10 +27,10 @@ func goodbyeHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `{"message": "bye bye, World!"}`)
 }
-func gdsgs(w http.ResponseWriter, r *http.Request) {
+func wowHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, `{"message": "bye bye, World!"}`)
+	fmt.Fprintf(w, `{"message": "wow, World!"}`)
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
